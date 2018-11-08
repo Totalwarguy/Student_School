@@ -1,17 +1,31 @@
-const mongoose = require('mongoose')
-const Schema = mongoose.Schema;
+var mongoose = require('mongoose');
 
-const Student = new mongoose.Schema({
-    firstName: {type:String, trim:true, default:''},
-    lastName: {type:String,  trim:true,default:''},
-    address: {type:String, trim:true,default:''},
-    city: {type:String,  trim:true,default:''}, 
-    state: {type:String,  trim:true,default:''},
-    school: {type:String,  trim:true,default:''},
-    grade: {type:String,  trim:true,default:''},
-    email: {type:String,  trim:true,default:''},
-    phone: {type:String,  trim:true,default:''}
+var Schema = mongoose.Schema;
 
-})
+var StudentSchema = new Schema(
+  {
+    first_name: {type: String, required: true, max: 100},
+    family_name: {type: String, required: true, max: 100},
+	school: { type: Schema.Types.ObjectId, ref: 'School', required: true }, //reference to the associated school
+    grade: {type: Number, required: true, min:0, max: 12, default: 0},
+	email: {type: String, required: false},
+	phone: {type: String, required: false}
+  }
+);
 
-module.exports = mongoose.model('Student', Student)
+// Virtual for student's full name
+StudentSchema
+.virtual('name')
+.get(function () {
+  return this.family_name + ', ' + this.first_name;
+});
+
+// Virtual for student's URL
+StudentSchema
+.virtual('url')
+.get(function () {
+  return '/api/student/' + this._id;
+});
+
+//Export model
+module.exports = mongoose.model('Student', StudentSchema);
