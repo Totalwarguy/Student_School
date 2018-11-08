@@ -1,41 +1,49 @@
-// Full Documentation - https://www.turbo360.co/docs
-const vertex = require('vertex360')({site_id: process.env.TURBO_APP_ID})
+var createError = require('http-errors');
+var express = require('express');
+var path = require('path');
+var cookieParser = require('cookie-parser');
+var logger = require('morgan');
 
+var indexRouter = require('./routes/index');
+var apiRouter = require('./routes/api');
 
+var app = express();
 
-/*  
-	Apps can also be initialized with config options as shown in the commented out example below. Options
-	include setting views directory, static assets directory, and database settings. To see default config
-	settings, view here: https://www.turbo360.co/docs 
-*/
-const config = {
-	views: 'views', 		// Set views directory 
-	static: 'public', 		// Set static assets directory
-	db: { 					// Database configuration. Remember to set env variables in .env file: MONGODB_URI, PROD_MONGODB_URI
-		url: (process.env.TURBO_ENV == 'dev') ? process.env.MONGODB_URI : process.env.PROD_MONGODB_URI,
+//Set up mongoose connection
+var mongoose = require('mongoose');
+var mongoDB = 'mongodb://cmst:awesomE1!@ds151951.mlab.com:51951/studentschools';
+mongoose.connect(mongoDB);
+mongoose.Promise = global.Promise;
+var db = mongoose.connection;
+db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
-		type: 'mongo',
-		onError: (err) => {
-			console.log('DB Connection Failed!')
-		},
-		onSuccess: () => {
-			console.log('DB Successfully Connected!')
-		}
-	}
-}
+// view engine setup
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'hbs');
 
-const app = vertex.app(config) // initialize app with config options
+app.use(logger('dev'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname, 'public')));
 
+app.use('/', indexRouter);
+app.use('/api', apiRouter);
 
+// catch 404 and forward to error handler
+app.use(function(req, res, next) {
+  next(createError(404));
+});
 
+// error handler
+app.use(function(err, req, res, next) {
+  // set locals, only providing error in development
+  res.locals.message = err.message;
+  res.locals.error = req.app.get('env') === 'development' ? err : {};
 
-// import routes
-const index = require('./routes/index')
-const api = require('./routes/api')
+  // render the error page
+  res.status(err.status || 500);
+  res.render('error');
+});
 
-// set routes
-app.use('/', index)
-app.use('/api', api) // sample API Routes
-
-
-module.exports = app
+module.exports = app;
