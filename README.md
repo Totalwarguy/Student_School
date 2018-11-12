@@ -1,6 +1,8 @@
 # studentschool
 Student School web app
 
+https://blooming-mesa-94350.herokuapp.com/
+
 Here is a link to the video tutorial:
 https://www.youtube.com/watch?v=4yqu8YF29cU
 
